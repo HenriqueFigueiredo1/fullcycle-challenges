@@ -1,0 +1,286 @@
+basePath: /
+definitions:
+  dto.CreateProductInput:
+    properties:
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  dto.CreateProductOutput:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  dto.CreateUserInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.GetJWTInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.GetJWTOutput:
+    properties:
+      access_token:
+        type: string
+    type: object
+  entity.Product:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: henriquerfigueiredo@outlook.com
+    name: Henrique Figueiredo
+    url: https://goncalves.biz
+  description: Product API with authentication
+  termsOfService: https://swagger.io/terms/
+  title: Go Expert API Example
+  version: "1.0"
+paths:
+  /products:
+    get:
+      consumes:
+        - application/json
+      description: List Products
+      parameters:
+        - description: page number
+          in: query
+          name: page
+          type: string
+        - description: limit
+          in: query
+          name: limit
+          type: string
+        - description: order type
+          in: query
+          name: sort
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: "#/definitions/entity.Product"
+            type: array
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/dto.Error"
+      security:
+        - ApiKeyAuth: []
+      tags:
+        - products
+    post:
+      consumes:
+        - application/json
+      description: Create Product
+      parameters:
+        - description: product request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/dto.CreateProductInput"
+      produces:
+        - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: "#/definitions/dto.CreateProductOutput"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/dto.Error"
+      security:
+        - ApiKeyAuth: []
+      tags:
+        - products
+  /products/{id}:
+    delete:
+      consumes:
+        - application/json
+      description: Delete Product
+      parameters:
+        - description: Product ID
+          format: uuid
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/dto.Error"
+      security:
+        - ApiKeyAuth: []
+      tags:
+        - products
+    get:
+      consumes:
+        - application/json
+      description: Get Product
+      parameters:
+        - description: Product ID
+          format: uuid
+          in: path
+          name: id
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/entity.Product"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/dto.Error"
+      security:
+        - ApiKeyAuth: []
+      tags:
+        - products
+    put:
+      consumes:
+        - application/json
+      description: Update Product
+      parameters:
+        - description: Product ID
+          format: uuid
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Product
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/dto.CreateProductInput"
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: "#/definitions/entity.Product"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/dto.Error"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/dto.Error"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/dto.Error"
+      security:
+        - ApiKeyAuth: []
+      tags:
+        - products
+  /users:
+    post:
+      consumes:
+        - application/json
+      description: Create User
+      parameters:
+        - description: user request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/dto.CreateUserInput"
+      produces:
+        - application/json
+      responses:
+        "201":
+          description: Created
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/dto.Error"
+      tags:
+        - users
+  /users/auth:
+    post:
+      consumes:
+        - application/json
+      description: Get a user JWT
+      parameters:
+        - description: user credentials
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/dto.GetJWTInput"
+      produces:
+        - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: "#/definitions/dto.GetJWTOutput"
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: "#/definitions/dto.Error"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/dto.Error"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/dto.Error"
+      tags:
+        - users
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
