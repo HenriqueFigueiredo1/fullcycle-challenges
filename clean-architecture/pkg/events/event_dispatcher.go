@@ -5,31 +5,19 @@ import (
 	"sync"
 )
 
-var (
-	ErrHandlerAlreadyRegistered = errors.New("handler already registered")
-)
+var ErrHandlerAlreadyRegistered = errors.New("handler already registered")
 
 type EventDispatcher struct {
-	handlers map[string][]IEventHandler
+	handlers map[string][]EventHandlerInterface
 }
 
 func NewEventDispatcher() *EventDispatcher {
 	return &EventDispatcher{
-		handlers: make(map[string][]IEventHandler),
+		handlers: make(map[string][]EventHandlerInterface),
 	}
 }
 
-func (ed *EventDispatcher) Register(eventName string, handler IEventHandler) error {
-	if ed.Has(eventName, handler) {
-		return ErrHandlerAlreadyRegistered
-	}
-
-	ed.handlers[eventName] = append(ed.handlers[eventName], handler)
-
-	return nil
-}
-
-func (ed *EventDispatcher) Dispatch(event IEvent) error {
+func (ed *EventDispatcher) Dispatch(event EventInterface) error {
 	if handlers, ok := ed.handlers[event.GetName()]; ok {
 		wg := &sync.WaitGroup{}
 		for _, handler := range handlers {
@@ -38,36 +26,50 @@ func (ed *EventDispatcher) Dispatch(event IEvent) error {
 		}
 		wg.Wait()
 	}
-
 	return nil
 }
 
-func (ed *EventDispatcher) Remove(eventName string, handler IEventHandler) error {
-	if _, ok := ed.handlers[eventName]; ok {
-		for i, h := range ed.handlers[eventName] {
-			if h == handler {
-				ed.handlers[eventName] = append(ed.handlers[eventName][:i], ed.handlers[eventName][i+1:]...)
-				return nil
-			}
-		}
-	}
-
-	return nil
-}
-
-func (ed *EventDispatcher) Has(eventName string, handler IEventHandler) bool {
+func (ed *EventDispatcher) Register(eventName string, handler EventHandlerInterface) error {
 	if _, ok := ed.handlers[eventName]; ok {
 		for _, h := range ed.handlers[eventName] {
 			if h == handler {
-				return true
+				return ErrHandlerAlreadyRegistered
 			}
+		}
+	}
+	ed.handlers[eventName] = append(ed.handlers[eventName], handler)
+	return nil
+}
+
+func (ed *EventDispatcher) Has(eventName string, handler EventHandlerInterface) bool {
+	if _, ok := ed.handlers[eventName]; !ok {
+		return false
+	}
+
+	for _, h := range ed.handlers[eventName] {
+		if h == handler {
+			return true
 		}
 	}
 
 	return false
 }
 
-func (ed *EventDispatcher) Clear() error {
-	ed.handlers = make(map[string][]IEventHandler)
+func (ed *EventDispatcher) Remove(eventName string, handler EventHandlerInterface) error {
+	if _, ok := ed.handlers[eventName]; !ok {
+		return nil
+	}
+
+	for i, h := range ed.handlers[eventName] {
+		if h == handler {
+			ed.handlers[eventName] = append(ed.handlers[eventName][:i], ed.handlers[eventName][i+1:]...)
+			return nil
+		}
+	}
+
 	return nil
+}
+
+func (ed *EventDispatcher) Clear() {
+	ed.handlers = make(map[string][]EventHandlerInterface)
 }

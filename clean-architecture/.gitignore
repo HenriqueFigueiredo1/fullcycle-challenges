@@ -19,5 +19,10 @@
 
 # Go workspace file
 go.work
+.idea
 
-*.db
+*.env
+internal/infra/grpc/pb
+internal/infra/gql/graph
+cmd/ordersystem/wire_gen.go
+server
